@@ -304,7 +304,6 @@ class _DetailMovieState extends State<DetailMovie> {
 
   Widget _myItemListView(BuildContext context, int index) {
     return Container(
-      color: Colors.pinkAccent,
       width: 80,
       margin: EdgeInsets.only(left: 20, right: 10, top: 10),
       child: Column(

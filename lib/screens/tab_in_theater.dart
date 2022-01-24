@@ -1,10 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:demo_app_movie/blocs/bloc_banner_movie/data_movie_bloc.dart';
-import 'package:demo_app_movie/blocs/bloc_banner_movie/data_movie_event.dart';
-import 'package:demo_app_movie/blocs/bloc_banner_movie/data_movie_state.dart';
-import 'package:demo_app_movie/blocs/bloc_categorie_movie/data_categorie_bloc.dart';
-import 'package:demo_app_movie/blocs/bloc_categorie_movie/data_categorie_event.dart';
-import 'package:demo_app_movie/blocs/bloc_categorie_movie/data_categorie_state.dart';
+import 'package:demo_app_movie/blocs/bloc_data_movie/data_movie_bloc.dart';
+import 'package:demo_app_movie/blocs/bloc_data_movie/data_movie_event.dart';
+import 'package:demo_app_movie/blocs/bloc_data_movie/data_movie_state.dart';
 import 'package:demo_app_movie/models/banner_model.dart';
 import 'package:demo_app_movie/models/movie_genre_model.dart';
 import 'package:demo_app_movie/screens/screen_detail/detailMovie.dart';
@@ -33,12 +30,12 @@ class TabInTheaterState extends State<TabInTheater>
 
   // Request call categories
   _requestCategories() async {
-    BlocProvider.of<CategorieBloc>(context)
+    BlocProvider.of<DataMovieBloc>(context)
         .add(const RequestGetMovieCategories());
   }
 
   _requestBanner() async {
-    BlocProvider.of<BannerBloc>(context).add(const RequestGetBanner());
+    BlocProvider.of<DataMovieBloc>(context).add(const RequestGetBanner());
   }
 
   @override
@@ -57,16 +54,9 @@ class TabInTheaterState extends State<TabInTheater>
     super.dispose();
   }
 
-  final List<String> imageList = [
-    "https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80",
-    'https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=89719a0d55dd05e2deae4120227e6efc&auto=format&fit=crop&w=1953&q=80',
-    'https://images.unsplash.com/photo-1508704019882-f9cf40e475b4?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=8c6e5e3aba713b17aa1fe71ab4f0ae5b&auto=format&fit=crop&w=1352&q=80',
-    'https://images.unsplash.com/photo-1519985176271-adb1088fa94c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=a0c8d632e977f94e5d312d9893258f59&auto=format&fit=crop&w=1355&q=80'
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<CategorieBloc, CategorieState>(
+    return BlocConsumer<DataMovieBloc, DataMovieState>(
         builder: (context, state) => _buildUI(context),
         listener: (context, state) {
           if (state is CategorieLoading) {
@@ -76,6 +66,19 @@ class TabInTheaterState extends State<TabInTheater>
             _genres = state.movieGenre?.genres ?? [];
           } else if (state is CategorieLoadError) {
             print('message Error: ${state.message}');
+          } else if (state is BannerLoading) {
+            print('loading...');
+            _isBannerLoading = true;
+          } else if (state is BannerLoadSuccess) {
+            print('Success...');
+            _isBannerLoading = false;
+            if (state.bannerModel != null &&
+                state.bannerModel!.results != null) {
+              _banner = state.bannerModel!.results!;
+            }
+          } else if (state is BannerLoadError) {
+            print('message Error: ${state.message}');
+            _isBannerLoading = false;
           }
         });
   }
@@ -86,23 +89,7 @@ class TabInTheaterState extends State<TabInTheater>
         child: Column(
           children: [
             _categoryWidget(context),
-            BlocConsumer<BannerBloc, BannerState>(
-                builder: (context, state) => _carouselSliderHomeMovie(context),
-                listener: (context, state) {
-                  if (state is BannerLoading) {
-                    print('loading...');
-                    _isBannerLoading = true;
-                  } else if (state is BannerLoadSuccess) {
-                    print('Success...');
-                    _isBannerLoading = false;
-                    if (state.bannerModel != null && state.bannerModel!.results != null) {
-                      _banner = state.bannerModel!.results!;
-                    }
-                  } else if (state is BannerLoadError) {
-                    print('message Error: ${state.message}');
-                    _isBannerLoading = false;
-                  }
-                }),
+            _carouselSliderHomeMovie(context),
           ],
         ),
       ),
@@ -190,7 +177,10 @@ class TabInTheaterState extends State<TabInTheater>
               margin: EdgeInsets.only(top: 30, bottom: 10),
               child: Text(
                 item.title.toString(),
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 30, overflow: TextOverflow.ellipsis),
+                style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 26,
+                    overflow: TextOverflow.ellipsis),
               ),
             ),
             Container(
